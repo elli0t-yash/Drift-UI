@@ -1,0 +1,23 @@
+import Link from 'next/link'
+
+export default function Math() {
+  return (
+    <>
+      <nav className="nav">
+        <Link href="/" className="nav-logo">📡 drift</Link>
+        <div className="nav-links">
+          <Link href="/" className="nav-link">← Back</Link>
+        </div>
+      </nav>
+      <div style={{ padding: '72px 32px', maxWidth: 720, margin: '0 auto' }}>
+        <div className="sec-label">deep dive</div>
+        <h1 className="sec-h2">The mathematics of Drift</h1>
+        <p className="sec-sub">
+          Full derivations for every formula in the platform.
+          Coming soon — rank transform, IC derivation, Black-Litterman posterior,
+          PSR formula, HRP algorithm, and WST cascade.
+        </p>
+      </div>
+    </>
+  )
+}
