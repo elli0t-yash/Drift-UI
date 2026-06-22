@@ -1,9 +1,12 @@
 'use client'
 
 import { useState } from 'react'
+import Link from 'next/link'
+import { useApiKey } from '@/lib/useApiKey'
 
 export function Hero() {
   const [copied, setCopied] = useState(false)
+  const { hasKey } = useApiKey()
 
   const handleCopy = () => {
     navigator.clipboard?.writeText('pip install drift')
@@ -27,6 +30,9 @@ export function Hero() {
       </p>
 
       <div className="hero-actions">
+        <Link href="/signup" className="nav-cta" style={{ padding: '10px 16px', fontSize: 13 }}>Get started free</Link>
+        <Link href="/pricing" style={{ fontFamily: 'var(--mono)', fontSize: 13, color: 'var(--text)', textDecoration: 'none', border: '1px solid var(--border)', padding: '9px 16px', borderRadius: 6 }}>View pricing</Link>
+        {hasKey && <Link href="/dashboard" style={{ fontFamily: 'var(--mono)', fontSize: 13, color: 'var(--teal)', textDecoration: 'none' }}>Open dashboard →</Link>}
         <div className="install-box">
           <span>$</span>
           <code>pip install drift</code>

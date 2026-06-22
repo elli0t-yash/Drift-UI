@@ -3,15 +3,24 @@
 import { useTheme } from 'next-themes'
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import { useApiKey } from '@/lib/useApiKey'
 
 export function Navbar() {
   const { theme, setTheme } = useTheme()
+  const router = useRouter()
+  const { hasKey, clearApiKey } = useApiKey()
   const [mounted, setMounted] = useState(false)
   const [open, setOpen] = useState(false)
   useEffect(() => setMounted(true), [])
 
   const toggleTheme = () => setTheme(theme === 'dark' ? 'light' : 'dark')
   const closeMenu = () => setOpen(false)
+  const signOut = () => {
+    clearApiKey()
+    closeMenu()
+    router.push('/signup')
+  }
 
   return (
     <>
@@ -31,12 +40,14 @@ export function Navbar() {
           >
             GitHub ↗
           </a>
+          {hasKey ? <Link href="/dashboard" className="nav-link">Dashboard</Link> : <Link href="/signup" className="nav-link">Sign in</Link>}
+          <Link href="/pricing" className="nav-link">Pricing</Link>
 
           <button className="nav-theme" onClick={toggleTheme} aria-label="Toggle theme">
             {mounted ? (theme === 'dark' ? '☀ Light' : '◐ Dark') : '◐'}
           </button>
 
-          <a href="#started" className="nav-cta">Get started →</a>
+          {hasKey ? <button onClick={signOut} className="nav-cta" style={{ border: 0, cursor: 'pointer' }}>Sign out</button> : <Link href="/signup" className="nav-cta">Get started →</Link>}
         </div>
 
         <button
@@ -59,10 +70,12 @@ export function Navbar() {
           <Link href="/math" className="nav-link" onClick={closeMenu}>Deep dive ↗</Link>
           <a href="#founders" className="nav-link" onClick={closeMenu}>Founders</a>
           <a href="https://github.com/elli0t-yash" target="_blank" rel="noreferrer" className="nav-link" onClick={closeMenu}>GitHub ↗</a>
+          {hasKey ? <Link href="/dashboard" className="nav-link" onClick={closeMenu}>Dashboard</Link> : <Link href="/signup" className="nav-link" onClick={closeMenu}>Sign in</Link>}
+          <Link href="/pricing" className="nav-link" onClick={closeMenu}>Pricing</Link>
           <button className="nav-theme" onClick={() => { toggleTheme(); closeMenu() }} aria-label="Toggle theme">
             {mounted ? (theme === 'dark' ? '☀ Light' : '◐ Dark') : '◐'}
           </button>
-          <a href="#started" className="nav-cta" onClick={closeMenu}>Get started →</a>
+          {hasKey ? <button className="nav-cta" onClick={signOut} style={{ border: 0, cursor: 'pointer' }}>Sign out</button> : <Link href="/signup" className="nav-cta" onClick={closeMenu}>Get started →</Link>}
         </div>
       )}
     </>
