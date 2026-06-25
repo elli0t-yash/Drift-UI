@@ -2,6 +2,7 @@
 
 import Link from "next/link"
 import { useEffect, useState } from "react"
+import { Disclaimer } from "@/components/Disclaimer"
 import { ErrorAlert } from "@/components/ErrorAlert"
 import { Navbar } from "@/components/Navbar"
 import { Spinner } from "@/components/Spinner"
@@ -66,7 +67,7 @@ export default function PricingPage() {
         <p style={{ color: "var(--muted)", textAlign: "center", marginBottom: 36 }}>Start free. Upgrade when your research needs more capacity.</p>
         {error && <ErrorAlert message={error} onDismiss={() => setError("")} />}
         <div style={{ display: "flex", flexWrap: "wrap", gap: 18 }}>{card("FREE", "₹0", FREE)}{card("PRO", "₹4,999", PRO, true)}</div>
-        <p style={{ color: "var(--muted)", fontSize: 12, lineHeight: 1.7, textAlign: "center", margin: "30px auto 0", maxWidth: 700 }}>Drift is a quantitative research platform. All outputs are for research purposes only and do not constitute investment advice. Past performance does not guarantee future results.</p>
+        <Disclaimer variant="full" />
       </main>
     </>
   )

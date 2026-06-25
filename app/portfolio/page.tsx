@@ -17,6 +17,7 @@ import {
   XAxis,
   YAxis,
 } from "recharts"
+import { Disclaimer } from "@/components/Disclaimer"
 import { ErrorAlert } from "@/components/ErrorAlert"
 import { Navbar } from "@/components/Navbar"
 import { Spinner } from "@/components/Spinner"
@@ -267,6 +268,7 @@ ICICIBANK,15`}
             {resultTab === "Risk" && <RiskTab analysis={analysis} />}
             {resultTab === "Correlation" && <CorrelationTab analysis={analysis} />}
             {resultTab === "Rebalance" && <RebalanceTab analysis={analysis} />}
+            <Disclaimer />
           </section>
         )}
       </main>

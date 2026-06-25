@@ -3,6 +3,7 @@
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useEffect, useMemo, useState, type CSSProperties, type ReactNode } from "react"
+import { Disclaimer } from "@/components/Disclaimer"
 import { ErrorAlert } from "@/components/ErrorAlert"
 import { Navbar } from "@/components/Navbar"
 import { Spinner } from "@/components/Spinner"
@@ -288,6 +289,9 @@ export default function ScreenerPage() {
                   ))}
                 </tbody>
               </table>
+              <div style={{ padding: "0 16px 16px" }}>
+                <Disclaimer />
+              </div>
             </div>
           )}
         </section>

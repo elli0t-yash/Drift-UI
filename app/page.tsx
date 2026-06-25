@@ -35,6 +35,12 @@ export default function Home() {
           © 2026 Drift ·{' '}
           <a href="#licensing">AGPL-3.0 + Commercial licensing</a>
           {' '}·{' '}
+          <a href="/advisor">Advisors</a>
+          {' '}·{' '}
+          <a href="/docs">API Docs</a>
+          {' '}·{' '}
+          <a href="/commercial">Commercial</a>
+          {' '}·{' '}
           <a href="https://github.com/elli0t-yash" target="_blank" rel="noreferrer">
             GitHub ↗
           </a>

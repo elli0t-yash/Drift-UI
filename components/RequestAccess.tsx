@@ -77,6 +77,28 @@ export function RequestAccess() {
           }}>
             NSE screener →
           </Link>
+          <Link href="/advisor" style={{
+            fontFamily: "var(--mono)",
+            fontSize: 13,
+            color: "var(--teal)",
+            textDecoration: "none",
+            border: "1px solid var(--teal)",
+            padding: "10px 20px",
+            borderRadius: 6,
+          }}>
+            For advisors →
+          </Link>
+          <Link href="/docs" style={{
+            fontFamily: "var(--mono)",
+            fontSize: 13,
+            color: "var(--teal)",
+            textDecoration: "none",
+            border: "1px solid var(--teal)",
+            padding: "10px 20px",
+            borderRadius: 6,
+          }}>
+            API docs →
+          </Link>
       </div>
 
       <div style={{ marginTop: 20, fontFamily: 'var(--mono)', fontSize: 11, color: 'var(--muted)', display: 'flex', gap: 16, justifyContent: 'center', flexWrap: 'wrap' }}>
