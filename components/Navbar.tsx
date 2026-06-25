@@ -41,6 +41,8 @@ export function Navbar() {
             GitHub ↗
           </a>
           {hasKey ? <Link href="/dashboard" className="nav-link">Dashboard</Link> : <Link href="/signup" className="nav-link">Sign in</Link>}
+          {hasKey && <Link href="/portfolio" className="nav-link">Portfolio</Link>}
+          {hasKey && <Link href="/screener" className="nav-link">Screener</Link>}
           <Link href="/pricing" className="nav-link">Pricing</Link>
 
           <button className="nav-theme" onClick={toggleTheme} aria-label="Toggle theme">
@@ -71,6 +73,8 @@ export function Navbar() {
           <a href="#founders" className="nav-link" onClick={closeMenu}>Founders</a>
           <a href="https://github.com/elli0t-yash" target="_blank" rel="noreferrer" className="nav-link" onClick={closeMenu}>GitHub ↗</a>
           {hasKey ? <Link href="/dashboard" className="nav-link" onClick={closeMenu}>Dashboard</Link> : <Link href="/signup" className="nav-link" onClick={closeMenu}>Sign in</Link>}
+          {hasKey && <Link href="/portfolio" className="nav-link" onClick={closeMenu}>Portfolio</Link>}
+          {hasKey && <Link href="/screener" className="nav-link" onClick={closeMenu}>Screener</Link>}
           <Link href="/pricing" className="nav-link" onClick={closeMenu}>Pricing</Link>
           <button className="nav-theme" onClick={() => { toggleTheme(); closeMenu() }} aria-label="Toggle theme">
             {mounted ? (theme === 'dark' ? '☀ Light' : '◐ Dark') : '◐'}

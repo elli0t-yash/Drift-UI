@@ -104,6 +104,70 @@ export default function DashboardPage() {
           <div style={{ height: 7, background: "var(--border)", borderRadius: 7, overflow: "hidden" }}><div style={{ width: `${Math.min(100, usage.daily_limit ? usage.requests_today / usage.daily_limit * 100 : 0)}%`, height: "100%", background: "var(--teal)" }} /></div>
         </>}
       </section>
+      <div style={{
+        background: "var(--surface)",
+        border: "1px solid var(--teal)",
+        borderRadius: 8,
+        padding: "16px 20px",
+        marginBottom: 24,
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "center",
+        gap: 16,
+        flexWrap: "wrap",
+      }}>
+        <div>
+          <div style={{ fontFamily: "var(--mono)", fontSize: 13,
+            fontWeight: 600, color: "var(--text)", marginBottom: 4 }}>
+            Analyse your portfolio
+          </div>
+          <div style={{ fontFamily: "var(--mono)", fontSize: 11,
+            color: "var(--muted)" }}>
+            Upload holdings CSV → factor exposure, risk decomposition,
+            rebalance suggestion, PDF report
+          </div>
+        </div>
+        <Link href="/portfolio" style={{
+          fontFamily: "var(--mono)", fontSize: 12,
+          color: "var(--teal)", textDecoration: "none",
+          border: "1px solid var(--teal)", borderRadius: 4,
+          padding: "8px 16px", whiteSpace: "nowrap",
+      }}>
+        Open →
+      </Link>
+      </div>
+      <div style={{
+        background: "var(--surface)",
+        border: "1px solid var(--border)",
+        borderRadius: 8,
+        padding: "16px 20px",
+        marginBottom: 24,
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "center",
+        gap: 16,
+        flexWrap: "wrap",
+      }}>
+        <div>
+          <div style={{ fontFamily: "var(--mono)", fontSize: 13,
+            fontWeight: 600, color: "var(--text)", marginBottom: 4 }}>
+            NSE stock screener
+          </div>
+          <div style={{ fontFamily: "var(--mono)", fontSize: 11,
+            color: "var(--muted)" }}>
+            Rank Nifty 50 / 100 / Bank Nifty by factor score,
+            regime compatibility, and risk classification
+          </div>
+        </div>
+        <Link href="/screener" style={{
+          fontFamily: "var(--mono)", fontSize: 12,
+          color: "var(--muted)", textDecoration: "none",
+          border: "1px solid var(--border)", borderRadius: 4,
+          padding: "8px 16px", whiteSpace: "nowrap",
+        }}>
+          Open →
+        </Link>
+      </div>
       <section style={{ ...panelStyle, display: "flex", gap: 10, flexWrap: "wrap", marginBottom: 18 }}>
         <div style={{ flex: "1 1 480px" }}><input value={tickersInput} onChange={event => setTickersInput(event.target.value)} aria-label="Comma-separated tickers" style={{ width: "100%", padding: "11px 13px", background: "var(--surface)", color: "var(--text)", border: "1px solid var(--border)", borderRadius: 5, fontFamily: "var(--mono)" }} /><p style={{ fontFamily: "var(--mono)", fontSize: 11, color: "var(--muted)", marginTop: 6 }}>NSE symbols only — e.g. RELIANCE, TCS, INFY, HDFCBANK, ICICIBANK, SBIN. Free tier: max 5 tickers.</p></div>
         <button onClick={() => run("signals")} disabled={loading === "signals"} style={buttonStyle}>{loading === "signals" ? <Spinner /> : "Run signals"}</button>

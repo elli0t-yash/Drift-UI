@@ -58,6 +58,102 @@ export interface RiskResponse {
   total_variance: number
 }
 
+export interface HoldingDetail {
+  ticker: string
+  weight: number
+  factor_scores: Record<string, number>
+  composite: number | null
+  vol_contrib: number
+  is_helping: boolean
+  risk_flags: string[]
+}
+
+export interface ConcentrationMetrics {
+  hhi: number
+  effective_n: number
+  max_weight: number
+  top3_weight: number
+}
+
+export interface CorrelationCluster {
+  tickers: string[]
+  avg_corr: number
+  note: string
+}
+
+export interface RebalanceSuggestion {
+  suggested_weights: Record<string, number>
+  method: string
+  effective_n_current: number
+  effective_n_suggested: number
+  improvement: number
+}
+
+export interface RegimeImpact {
+  current_regime: string
+  confidence: number
+  portfolio_score: number
+  active_factors: string[]
+  suppressed_factors: string[]
+  recommendation: string
+}
+
+export interface StressResult {
+  scenario: string
+  total_return: number
+  max_drawdown: number
+  ann_vol: number
+  cvar_daily: number
+  n_days: number
+}
+
+export interface PortfolioAnalysis {
+  as_of: string
+  n_holdings: number
+  annualised_vol: number
+  max_drawdown: number
+  sharpe: number | null
+  effective_n: number
+  current_regime: string
+  regime_confidence: number
+  holdings: HoldingDetail[]
+  factor_exposure: Record<string, number>
+  concentration: ConcentrationMetrics
+  correlation_clusters: CorrelationCluster[]
+  risk_decomposition: RiskResponse
+  stress_results: StressResult[]
+  rebalance: RebalanceSuggestion
+  warnings: string[]
+  regime_impact: RegimeImpact
+}
+
+export interface ScreenerRow {
+  rank: number
+  ticker: string
+  sector: string
+  composite_score: number
+  factor_scores: Record<string, number>
+  annualised_vol: number
+  regime_compatible: boolean
+  classification: "candidate" | "watchlist" | "avoid"
+  why: string
+  risk_note: string
+}
+
+export interface ScreenResponse {
+  as_of: string
+  universe: string
+  total_in_universe: number
+  total_passed_filters: number
+  shown: number
+  is_truncated: boolean
+  current_regime: "bull" | "bear" | "sideways"
+  regime_confidence: number
+  results: ScreenerRow[]
+  skipped_tickers: string[]
+  note: string
+}
+
 async function request<T>(
   path: string,
   options: RequestInit & { apiKey?: string } = {}
@@ -150,6 +246,62 @@ export const api = {
         weights,
         provider: "kite",
         benchmark: "^NSEI",
+      }),
+    }),
+
+  analyzePortfolio: (
+    apiKey: string,
+    weights: Record<string, number>,
+    provider = "kite",
+    benchmark = "^NSEI"
+  ) =>
+    request<PortfolioAnalysis>("/portfolio/analyze", {
+      method: "POST",
+      apiKey,
+      body: JSON.stringify({ weights, provider, benchmark }),
+    }),
+
+  downloadReport: async (
+    apiKey: string,
+    weights: Record<string, number>,
+    provider = "kite",
+    benchmark = "^NSEI"
+  ): Promise<Blob> => {
+    const BASE = process.env.NEXT_PUBLIC_API_URL!
+    const res = await fetch(`${BASE}/portfolio/report`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-API-Key": apiKey,
+      },
+      body: JSON.stringify({ weights, provider, benchmark }),
+    })
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}))
+      throw new Error((err as any).detail ?? `HTTP ${res.status}`)
+    }
+    return res.blob()
+  },
+
+  screen: (
+    apiKey: string,
+    universe: "nifty50" | "nifty100" | "banknifty" | "custom",
+    options: {
+      custom_tickers?: string[]
+      sort_by?: "composite" | "momentum" | "quality" | "value" | "risk"
+      sector?: string
+      min_composite?: number
+      max_volatility?: number
+    } = {}
+  ) =>
+    request<ScreenResponse>("/screen", {
+      method: "POST",
+      apiKey,
+      body: JSON.stringify({
+        universe,
+        provider: "kite",
+        benchmark: "^NSEI",
+        ...options,
       }),
     }),
 

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { api } from '@/lib/api'
 import { useApiKey } from '@/lib/useApiKey'
@@ -54,6 +55,28 @@ export function RequestAccess() {
           <button onClick={requestAccess} disabled={loading} className="nav-cta" style={{ padding: '10px 24px', fontSize: 13, cursor: loading ? 'wait' : 'pointer', border: 'none' }}>
             {loading ? <Spinner /> : 'Request access →'}
           </button>
+          <Link href="/portfolio" style={{
+            fontFamily: "var(--mono)",
+            fontSize: 13,
+            color: "var(--teal)",
+            textDecoration: "none",
+            border: "1px solid var(--teal)",
+            padding: "10px 20px",
+            borderRadius: 6,
+          }}>
+            Analyse a portfolio →
+          </Link>
+          <Link href="/screener" style={{
+            fontFamily: "var(--mono)",
+            fontSize: 13,
+            color: "var(--teal)",
+            textDecoration: "none",
+            border: "1px solid var(--teal)",
+            padding: "10px 20px",
+            borderRadius: 6,
+          }}>
+            NSE screener →
+          </Link>
       </div>
 
       <div style={{ marginTop: 20, fontFamily: 'var(--mono)', fontSize: 11, color: 'var(--muted)', display: 'flex', gap: 16, justifyContent: 'center', flexWrap: 'wrap' }}>
