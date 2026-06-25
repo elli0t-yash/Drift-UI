@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { useEffect, useMemo, useState } from "react"
+import { useCallback, useEffect, useMemo, useState } from "react"
 import { Bar, BarChart, CartesianGrid, Cell, Legend, Line, LineChart, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts"
 import { ErrorAlert } from "@/components/ErrorAlert"
 import { Spinner } from "@/components/Spinner"
@@ -19,6 +19,21 @@ const panelStyle: React.CSSProperties = { background: "var(--surface)", border: 
 const pct = (value: number) => `${(value * 100).toFixed(1)}%`
 const score = (scores: Record<string, number>, key: string) => scores[key] ?? scores[key.toLowerCase()] ?? scores[key[0].toUpperCase() + key.slice(1)]
 
+function friendlyError(err: unknown): string {
+  const msg = err instanceof Error ? err.message : String(err)
+  if (msg.includes("expired") || msg.includes("403"))
+    return "Market data connection expired. The server refreshes this daily at 9 AM IST. Try again shortly."
+  if (msg.includes("429"))
+    return "Daily request limit reached. Upgrade to Pro for 2,000 requests/day."
+  if (msg.includes("401"))
+    return "Invalid API key. Sign out and get a new key."
+  if (msg.includes("502") || msg.includes("503"))
+    return "The analysis server is warming up. Wait 10 seconds and try again."
+  if (msg.includes("not found") || msg.includes("instrument"))
+    return "One or more tickers not found on NSE. Use bare symbols like RELIANCE, TCS, INFY."
+  return msg
+}
+
 export default function DashboardPage() {
   const router = useRouter()
   const { apiKey, clearApiKey, hasKey, isLoaded } = useApiKey()
@@ -33,12 +48,23 @@ export default function DashboardPage() {
   const [error, setError] = useState("")
   const tickers = useMemo(() => tickersInput.split(",").map(value => value.trim().toUpperCase()).filter(Boolean), [tickersInput])
 
+  const refreshUsage = useCallback(async () => {
+    setLoading("usage")
+    setError("")
+    try {
+      setUsage(await api.me(apiKey))
+    } catch (err) {
+      setError(friendlyError(err))
+    } finally {
+      setLoading("")
+    }
+  }, [apiKey])
+
   useEffect(() => {
     if (!isLoaded) return
     if (!hasKey) return router.replace("/signup")
-    setLoading("usage")
-    api.me(apiKey).then(setUsage).catch(err => setError(err instanceof Error ? err.message : "Could not load account." )).finally(() => setLoading(""))
-  }, [apiKey, hasKey, isLoaded, router])
+    refreshUsage()
+  }, [hasKey, isLoaded, refreshUsage, router])
 
   const run = async (kind: "signals" | "portfolio" | "risk" | "backtest") => {
     if (!tickers.length) return setError("Enter at least one ticker.")
@@ -53,7 +79,7 @@ export default function DashboardPage() {
       }
       if (kind === "backtest" && usage?.tier === "pro") setBacktest(await api.backtest(apiKey, tickers))
     } catch (err) {
-      setError(err instanceof Error ? err.message : "The request failed.")
+      setError(friendlyError(err))
     } finally {
       setLoading("")
     }
@@ -73,13 +99,13 @@ export default function DashboardPage() {
       {error && <ErrorAlert message={error} onDismiss={() => setError("")} />}
       <section style={{ ...panelStyle, marginBottom: 18 }}>
         {loading === "usage" && !usage ? <Spinner /> : usage && <>
-          <div style={{ display: "flex", justifyContent: "space-between", flexWrap: "wrap", gap: 12 }}><span style={{ fontFamily: "var(--mono)" }}>{usage.email}</span><span style={{ color: usage.tier === "pro" ? "var(--teal)" : "var(--muted)", border: "1px solid var(--border)", borderRadius: 4, padding: "3px 8px", fontFamily: "var(--mono)", fontSize: 11 }}>{usage.tier.toUpperCase()}</span></div>
+          <div style={{ display: "flex", justifyContent: "space-between", flexWrap: "wrap", gap: 12 }}><span style={{ fontFamily: "var(--mono)" }}>{usage.email}</span><div style={{ display: "flex", gap: 8, alignItems: "center" }}><span style={{ background: usage.tier === "pro" ? "var(--teal)" : "var(--surface)", color: usage.tier === "pro" ? "#fff" : "var(--muted)", border: "1px solid var(--border)", borderRadius: 4, padding: "3px 8px", fontFamily: "var(--mono)", fontSize: 11 }}>{usage.tier === "pro" ? "PRO" : "FREE"}</span><button onClick={refreshUsage} disabled={loading === "usage"} style={{ background: "var(--surface)", color: "var(--muted)", border: "1px solid var(--border)", borderRadius: 4, padding: "3px 8px", fontFamily: "var(--mono)", fontSize: 11, cursor: loading === "usage" ? "wait" : "pointer" }}>{loading === "usage" ? "Refreshing…" : "Refresh usage"}</button></div></div>
           <div style={{ display: "flex", justifyContent: "space-between", margin: "20px 0 7px", color: "var(--muted)", fontSize: 12 }}><span>{usage.requests_today} / {usage.daily_limit} requests today</span><span>{usage.remaining} remaining</span></div>
           <div style={{ height: 7, background: "var(--border)", borderRadius: 7, overflow: "hidden" }}><div style={{ width: `${Math.min(100, usage.daily_limit ? usage.requests_today / usage.daily_limit * 100 : 0)}%`, height: "100%", background: "var(--teal)" }} /></div>
         </>}
       </section>
       <section style={{ ...panelStyle, display: "flex", gap: 10, flexWrap: "wrap", marginBottom: 18 }}>
-        <input value={tickersInput} onChange={event => setTickersInput(event.target.value)} aria-label="Comma-separated tickers" style={{ flex: "1 1 480px", padding: "11px 13px", background: "var(--surface)", color: "var(--text)", border: "1px solid var(--border)", borderRadius: 5, fontFamily: "var(--mono)" }} />
+        <div style={{ flex: "1 1 480px" }}><input value={tickersInput} onChange={event => setTickersInput(event.target.value)} aria-label="Comma-separated tickers" style={{ width: "100%", padding: "11px 13px", background: "var(--surface)", color: "var(--text)", border: "1px solid var(--border)", borderRadius: 5, fontFamily: "var(--mono)" }} /><p style={{ fontFamily: "var(--mono)", fontSize: 11, color: "var(--muted)", marginTop: 6 }}>NSE symbols only — e.g. RELIANCE, TCS, INFY, HDFCBANK, ICICIBANK, SBIN. Free tier: max 5 tickers.</p></div>
         <button onClick={() => run("signals")} disabled={loading === "signals"} style={buttonStyle}>{loading === "signals" ? <Spinner /> : "Run signals"}</button>
       </section>
       <nav style={{ display: "flex", gap: 4, overflowX: "auto" }}>{TABS.map(item => <button key={item} onClick={() => setTab(item)} style={{ padding: "10px 16px", border: "1px solid var(--border)", borderBottom: item === tab ? "1px solid var(--surface)" : "1px solid var(--border)", background: item === tab ? "var(--surface)" : "transparent", color: item === tab ? "var(--teal)" : "var(--muted)", fontFamily: "var(--mono)", cursor: "pointer" }}>{item}</button>)}</nav>

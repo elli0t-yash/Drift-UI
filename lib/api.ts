@@ -92,6 +92,8 @@ export const api = {
       method: "POST", apiKey,
       body: JSON.stringify({
         tickers,
+        provider: "kite",
+        benchmark: "^NSEI",
         ...(startDate ? { start_date: startDate } : {}),
       }),
     }),
@@ -99,13 +101,23 @@ export const api = {
   optimise: (apiKey: string, tickers: string[], method = "hrp") =>
     request<OptimiseResponse>("/portfolio/optimise", {
       method: "POST", apiKey,
-      body: JSON.stringify({ tickers, method }),
+      body: JSON.stringify({
+        tickers,
+        method,
+        provider: "kite",
+        benchmark: "^NSEI",
+      }),
     }),
 
   backtest: async (apiKey: string, tickers: string[], method = "hrp") => {
     const started = await request<BacktestJobResponse | BacktestResponse>("/backtest/run", {
       method: "POST", apiKey,
-      body: JSON.stringify({ tickers, method }),
+      body: JSON.stringify({
+        tickers,
+        method,
+        provider: "kite",
+        benchmark: "^NSEI",
+      }),
     })
 
     if ("metrics" in started) return started
@@ -134,7 +146,11 @@ export const api = {
   risk: (apiKey: string, weights: Record<string, number>) =>
     request<RiskResponse>("/risk/decompose", {
       method: "POST", apiKey,
-      body: JSON.stringify({ weights }),
+      body: JSON.stringify({
+        weights,
+        provider: "kite",
+        benchmark: "^NSEI",
+      }),
     }),
 
   billingStatus: (email: string) =>

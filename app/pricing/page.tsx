@@ -3,6 +3,7 @@
 import Link from "next/link"
 import { useEffect, useState } from "react"
 import { ErrorAlert } from "@/components/ErrorAlert"
+import { Navbar } from "@/components/Navbar"
 import { Spinner } from "@/components/Spinner"
 import { api } from "@/lib/api"
 import { useApiKey } from "@/lib/useApiKey"
@@ -43,7 +44,10 @@ export default function PricingPage() {
       <div style={{ fontFamily: "var(--mono)", color: pro ? "var(--teal)" : "var(--muted)", fontSize: 12 }}>{title}</div>
       <h2 style={{ fontFamily: "var(--mono)", fontSize: 30, margin: "12px 0 24px" }}>{price}<span style={{ color: "var(--muted)", fontSize: 13 }}>/month</span></h2>
       <ul style={{ listStyle: "none", display: "grid", gap: 12, color: "var(--muted)", fontSize: 13, lineHeight: 1.5 }}>
-        {features.map(feature => <li key={feature}>✓ {feature}</li>)}
+        {features.map(feature => {
+          const absent = feature.startsWith("No ")
+          return <li key={feature} style={{ color: absent ? "var(--muted)" : "var(--teal)", opacity: absent ? 0.6 : 1 }}><span>{absent ? "✗" : "✓"}</span> {feature}</li>
+        })}
       </ul>
       {pro ? (
         <div style={{ marginTop: 28 }}>
@@ -55,13 +59,15 @@ export default function PricingPage() {
   )
 
   return (
-    <main style={{ minHeight: "100vh", maxWidth: 850, margin: "0 auto", padding: "72px 24px" }}>
-      <Link href="/" style={{ color: "var(--teal)", fontFamily: "var(--mono)", textDecoration: "none" }}>📡 drift</Link>
-      <h1 style={{ fontFamily: "var(--mono)", fontSize: 36, textAlign: "center", margin: "42px 0 10px" }}>Simple research access</h1>
-      <p style={{ color: "var(--muted)", textAlign: "center", marginBottom: 36 }}>Start free. Upgrade when your research needs more capacity.</p>
-      {error && <ErrorAlert message={error} onDismiss={() => setError("")} />}
-      <div style={{ display: "flex", flexWrap: "wrap", gap: 18 }}>{card("FREE", "₹0", FREE)}{card("PRO", "₹4,999", PRO, true)}</div>
-      <p style={{ color: "var(--muted)", fontSize: 12, lineHeight: 1.7, textAlign: "center", margin: "30px auto 0", maxWidth: 700 }}>Drift is a quantitative research platform. All outputs are for research purposes only and do not constitute investment advice. Past performance does not guarantee future results.</p>
-    </main>
+    <>
+      <Navbar />
+      <main style={{ minHeight: "100vh", maxWidth: 850, margin: "0 auto", padding: "72px 24px" }}>
+        <h1 style={{ fontFamily: "var(--mono)", fontSize: 36, textAlign: "center", margin: "42px 0 10px" }}>Simple research access</h1>
+        <p style={{ color: "var(--muted)", textAlign: "center", marginBottom: 36 }}>Start free. Upgrade when your research needs more capacity.</p>
+        {error && <ErrorAlert message={error} onDismiss={() => setError("")} />}
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 18 }}>{card("FREE", "₹0", FREE)}{card("PRO", "₹4,999", PRO, true)}</div>
+        <p style={{ color: "var(--muted)", fontSize: 12, lineHeight: 1.7, textAlign: "center", margin: "30px auto 0", maxWidth: 700 }}>Drift is a quantitative research platform. All outputs are for research purposes only and do not constitute investment advice. Past performance does not guarantee future results.</p>
+      </main>
+    </>
   )
 }
