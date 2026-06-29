@@ -11,6 +11,7 @@ import { GetStarted }  from '@/components/GetStarted'
 import { Founders }    from '@/components/Founders'
 import { Licensing }   from '@/components/Licensing'
 import { RequestAccess } from '@/components/RequestAccess'
+import Link from 'next/link'
 
 export default function Home() {
   return (
@@ -28,6 +29,25 @@ export default function Home() {
       <Founders />
       <Licensing />
       <RequestAccess />
+      <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap', margin: '-36px auto 72px', padding: '0 24px' }}>
+        <Link href="/advisor" style={{
+          fontFamily: "var(--mono)", fontSize: 13,
+          color: "var(--muted)", textDecoration: "none",
+          border: "1px solid var(--border)", padding: "10px 20px",
+          borderRadius: 6,
+        }}>
+          For advisors →
+        </Link>
+
+        <Link href="/docs" style={{
+          fontFamily: "var(--mono)", fontSize: 13,
+          color: "var(--muted)", textDecoration: "none",
+          border: "1px solid var(--border)", padding: "10px 20px",
+          borderRadius: 6,
+        }}>
+          API docs →
+        </Link>
+      </div>
 
       <footer>
         <span className="footer-logo">📡 drift</span>
@@ -37,7 +57,7 @@ export default function Home() {
           {' '}·{' '}
           <a href="/advisor">Advisors</a>
           {' '}·{' '}
-          <a href="/docs">API Docs</a>
+          <a href="/docs">API</a>
           {' '}·{' '}
           <a href="/commercial">Commercial</a>
           {' '}·{' '}
