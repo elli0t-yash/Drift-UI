@@ -33,7 +33,7 @@ export function Navbar() {
           <Link href="/math" className="nav-link">Deep dive ↗</Link>
           <a href="#founders" className="nav-link">Founders</a>
           <a
-            href="https://github.com/elli0t-yash"
+            href="https://github.com/samvardhan03/Drift"
             target="_blank"
             rel="noreferrer"
             className="nav-link"
@@ -75,7 +75,7 @@ export function Navbar() {
           <a href="#math" className="nav-link" onClick={closeMenu}>Math</a>
           <Link href="/math" className="nav-link" onClick={closeMenu}>Deep dive ↗</Link>
           <a href="#founders" className="nav-link" onClick={closeMenu}>Founders</a>
-          <a href="https://github.com/elli0t-yash" target="_blank" rel="noreferrer" className="nav-link" onClick={closeMenu}>GitHub ↗</a>
+          <a href="https://github.com/samvardhan03/Drift" target="_blank" rel="noreferrer" className="nav-link" onClick={closeMenu}>GitHub ↗</a>
           <Link href="/advisor" className="nav-link" onClick={closeMenu}>Advisors</Link>
           <Link href="/docs" className="nav-link" onClick={closeMenu}>API</Link>
           <Link href="/commercial" className="nav-link" onClick={closeMenu}>Commercial</Link>
