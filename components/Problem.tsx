@@ -14,8 +14,8 @@ const PROBLEMS = [
   {
     n:  '03',
     h:  'Regimes change. Your signal doesn\'t know.',
-    p:  'Momentum has negative IC in bear regimes. HMM regime detection gates which signals are active in each market state.',
-    eq: 'α_{t+1}(j) = B_j · Σ_k α_t(k) A_{kj}',
+    p:  'Momentum crashes in bear regimes. Drift detects market mood via HMM augmented with a co-movement graph — correlation tightening across sectors signals stress before the index falls.',
+    eq: 'w_f = 0.60·ICIR + 0.40·regime preference',
   },
 ]
 

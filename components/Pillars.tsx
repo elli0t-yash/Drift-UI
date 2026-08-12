@@ -53,18 +53,19 @@ export function Pillars() {
         <div className="pillar">
           <div>
             <div className="pil-n">Pillar 3 — portfolio construction</div>
-            <h3 className="pil-h">Black-Litterman posterior</h3>
+            <h3 className="pil-h">Self-calibrating Black-Litterman</h3>
             <p className="pil-p">
-              Reverse optimisation backs out equilibrium returns from market-cap weights:
-              μ_eq = λΣw_mkt. The posterior is a precision-weighted blend of the CAPM
-              prior and IC-derived views. HRP (Ward linkage + recursive bisection) provides
-              a matrix-inversion-free fallback when views are noisy.
+              Reverse optimisation backs out equilibrium returns: μ_eq = λΣw_mkt.
+              The posterior blends the CAPM prior with IC-derived views. The key
+              upgrade: view-uncertainty Ω is endogenous — computed from the model's
+              own measured IC and realized errors. Poor recent accuracy inflates Ω,
+              automatically pulling the portfolio toward the market baseline.
             </p>
           </div>
           <div className="eq-block">
             <div><span className="eq-sym">μ_eq</span><span className="eq-op"> = </span><span className="eq-val">λ Σ w_mkt</span></div>
             <div><span className="eq-sym">μ_BL</span><span className="eq-op"> = M </span><span className="eq-val">[A μ_eq + Pᵀ Ω⁻¹ q]</span></div>
-            <div className="eq-cm">M = [(τΣ)⁻¹ + PᵀΩ⁻¹P]⁻¹</div>
+            <div className="eq-cm">Ω = f(measured IC, realized errors) — self-calibrating</div>
           </div>
         </div>
       </div>

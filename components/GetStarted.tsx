@@ -10,29 +10,29 @@ from drift.features.factors import FactorEngine
 from drift.portfolio.hrp import HRP
 from drift.backtest.engine import BacktestEngine
 
-# one pipeline, seven layers
+# one pipeline, fifteen layers
 loader  = DataLoader()
-ohlcv   = loader.equity_ohlcv(["AAPL", "MSFT", "NVDA"])
+ohlcv   = loader.equity_ohlcv(["RELIANCE.NS", "TCS.NS", "HDFCBANK.NS"])
 result  = BacktestEngine(HRP()).run(ohlcv)
 print(result)  # Sharpe=0.70 · PSR=0.89 · MaxDD=−0.16`
 
 const API_CODE = `# 1. start the server
 uvicorn drift.api.main:app --port 8000
 
-# 2. compute factor signals
+# 2. compute factor signals (Nifty 50 universe)
 curl -X POST http://localhost:8000/signals/compute \\
   -H "Content-Type: application/json" \\
-  -d '{"tickers":["AAPL","MSFT","NVDA"],
-       "start_date":"2023-01-01","benchmark":"SPY"}'
+  -d '{"tickers":["RELIANCE.NS","TCS.NS","HDFCBANK.NS"],
+       "start_date":"2023-01-01","benchmark":"^NSEI"}'
 
-# 3. optimise portfolio
+# 3. optimise portfolio (Black-Litterman + HRP)
 curl -X POST http://localhost:8000/portfolio/optimise \\
-  -d '{"tickers":["AAPL","MSFT","NVDA"],
-       "start_date":"2022-01-01","method":"hrp"}'
+  -d '{"tickers":["RELIANCE.NS","TCS.NS","HDFCBANK.NS"],
+       "start_date":"2022-01-01","method":"black_litterman"}'
 
-# 4. run backtest (async job)
+# 4. run walk-forward backtest (PSR + DSR)
 curl -X POST http://localhost:8000/backtest/run \\
-  -d '{"tickers":["AAPL","MSFT"],"start_date":"2021-01-01"}'
+  -d '{"tickers":["RELIANCE.NS","TCS.NS"],"start_date":"2021-01-01"}'
 # → {"job_id":"abc-123","status":"queued"}
 
 curl http://localhost:8000/backtest/abc-123
@@ -46,14 +46,14 @@ mcpServers:
       - /path/to/drift/drift/api/mcp_server.py
 
 # then ask Codex naturally:
-codex "compute signals for AAPL, MSFT, NVDA and tell me \\
-       which has the strongest momentum signal"
+codex "screen the Nifty 50 and tell me which stocks \\
+       have the strongest composite alpha today"
 
 codex "optimise a portfolio of RELIANCE.NS, TCS.NS, \\
-       HDFCBANK.NS using HRP and explain the weights"
+       HDFCBANK.NS using Black-Litterman and explain the weights"
 
-codex "run a 3-year backtest on the Mag 7 with 5bps \\
-       commission and show me the PSR"`
+codex "run a 3-year walk-forward backtest on Nifty 50 \\
+       with 5bps commission and show me the PSR and DSR"`
 
 const CODE: Record<Tab, string> = {
   Python: PYTHON_CODE,
