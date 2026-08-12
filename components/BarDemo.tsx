@@ -1,11 +1,13 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useTheme } from 'next-themes'
 
 export function BarDemo() {
   const [outlier, setOutlier] = useState(5.0)
+  const [mounted, setMounted] = useState(false)
   const { theme } = useTheme()
+  useEffect(() => setMounted(true), [])
 
   const N   = 5
   const raw = [0.1, 0.2, 0.3, 0.4, outlier]
@@ -21,7 +23,7 @@ export function BarDemo() {
   })
 
   const maxZ = Math.max(...data.map(d => Math.abs(d.zs))) || 1
-  const isLight = theme === 'light'
+  const isLight = mounted && theme === 'light'
   const barN  = isLight ? '#DCE4EF' : '#1E3A54'
   const barT  = isLight ? '#00967A' : '#00C896'
   const barR  = isLight ? '#DC2626' : '#EF4444'
@@ -54,7 +56,7 @@ export function BarDemo() {
               {data.map(d => (
                 <div key={d.lbl} className="bcol">
                   <div className="bbar" style={{
-                    height: `${Math.abs(d.rs) * 55}px`,
+                    height: `${(Math.abs(d.rs) * 55).toFixed(2)}px`,
                     background: d.isOut ? barT : barN,
                     marginTop: 'auto',
                     border: d.isOut ? `1px solid ${barT}` : 'none',
@@ -74,7 +76,7 @@ export function BarDemo() {
               {data.map(d => (
                 <div key={d.lbl} className="bcol">
                   <div className="bbar" style={{
-                    height: `${(Math.abs(d.zs) / maxZ) * 110}px`,
+                    height: `${((Math.abs(d.zs) / maxZ) * 110).toFixed(2)}px`,
                     background: d.isOut ? barR : barN,
                     marginTop: 'auto',
                     border: d.isOut ? `1px solid ${barR}` : 'none',
