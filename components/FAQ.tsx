@@ -5,27 +5,31 @@ import { useState } from 'react'
 const FAQS = [
   {
     q: 'Does Drift work with Indian equities (NSE/BSE)?',
-    a: 'Yes. Append .NS for NSE (e.g. RELIANCE.NS, TCS.NS) or .BO for BSE. The yfinance provider handles both. Use ^NSEI as the benchmark for Nifty-based regime detection.',
+    a: 'Yes. Drift is India-first: it is built around Zerodha Kite data (OHLCV + fundamentals for the Nifty 50, Bank Nifty, and custom NSE universes). An automated daily token-refresh robot handles the Zerodha session renewal so the engine runs unattended from market open.',
   },
   {
     q: 'Which data vendors are supported?',
-    a: 'Any OpenBB-compatible provider: yfinance (free, default), Polygon.io, Refinitiv, Bloomberg. The DataLoader is provider-agnostic — swap the provider string in one line without changing any other code.',
+    a: 'Zerodha Kite is the primary data source for Indian equities. Data is fetched by a fully asynchronous, non-blocking engine paced exactly at the broker\'s rate limit. All screener math is precomputed at dawn and served from memory-mapped Arrow files in <150 ms — no per-request network calls during the trading day.',
   },
   {
     q: 'How does Drift scale to large universes (500+ tickers)?',
-    a: 'The Parquet cache handles repeated fetches. The factor engine is vectorised with NumPy. For very large universes (>200 tickers) the CVaR optimiser is the bottleneck — use HRP instead, which scales linearly. A Dask/Ray parallel backend is on the roadmap.',
+    a: 'The factor engine uses vectorized matrix operations — the rank transform and wavelet scattering run as single batched tensor ops, not per-ticker loops. Standard universes (Nifty 50, Bank Nifty) are precomputed in a memory-mapped FeatureStore and served in <150 ms. For very large custom universes, the async pipeline falls back to a non-blocking live computation that cannot block other users.',
   },
   {
     q: 'Can I use this for live trading?',
-    a: 'Drift is a research and signal generation platform, not an execution layer. It generates factor signals and portfolio weights. Wire the FastAPI /portfolio/optimise endpoint to your broker (Zerodha Kite, Interactive Brokers, Alpaca) for live execution.',
+    a: 'Drift ends at target weights. It is a research and decision engine, not an order-execution system — users place trades at their own broker. This is by design: Drift has no conflict of interest in your execution, and no broker licensing is required. The output is a complete, mathematically defensible research report including factor scores, regime context, risk decomposition, and portfolio weights.',
   },
   {
     q: 'Is the backtest forward-looking (lookahead bias)?',
-    a: 'No. The engine uses an expanding window — only data available at each rebalance date is used. Factor signals use point-in-time prices. Fundamentals are forward-filled from the last reported quarter, not restated. The StandardScaler in the HMM is fitted on training data only and reused at inference.',
+    a: 'No. The engine uses an expanding walk-forward window — only data available at each rebalance date is used. Critically, regime probabilities are forward-filtered (point-in-time), not smoothed. The legacy HMM used smoothed probabilities where every historical date "knew" the future; Drift 2.0 enforces a forward-only recursion, verified by a property test in CI that appending future data must not change any earlier probability.',
   },
   {
     q: 'What is the MCP server for?',
-    a: 'The Model Context Protocol server exposes Drift as a tool for LLM agents. Connect it to Claude Desktop or OpenAI Codex CLI and query your portfolio signals in natural language: "which factor has the highest ICIR this month" or "optimise a Nifty 10 portfolio using HRP".',
+    a: 'The Model Context Protocol server exposes Drift as a tool for LLM agents. Connect it to Claude Desktop or OpenAI Codex CLI and query your portfolio signals in natural language: "which factor has the highest ICIR this month" or "optimise a Nifty 50 portfolio using Black-Litterman".',
+  },
+  {
+    q: 'What changed in Drift 2.0?',
+    a: 'Seven major upgrades: (1) automated daily broker-token refresh with TOTP — zero human mornings; (2) fully async data engine, concurrent and rate-limit-aware; (3) memory-mapped precomputed FeatureStore, <150 ms screener responses; (4) vectorized math core — rank transform and wavelet scattering as batched matrix/tensor ops; (5) co-movement graph regimes — detects sector correlation tightening before the index confirms stress; (6) endogenous, self-calibrating Black-Litterman confidence — the allocator reduces its own risk when recent predictions have been wrong; (7) enforced quality guardrails — strict data contracts, zero-lookahead CI checks, and graceful fallbacks.',
   },
 ]
 

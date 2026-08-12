@@ -5,9 +5,9 @@ import { MathSidebar } from '@/components/MathSidebar'
 export const metadata: Metadata = {
   title: 'Drift — Mathematical foundations',
   description:
-    'Full derivations for every formula in the Drift platform. ' +
-    'Rank transform, IC/ICIR, Black-Litterman posterior, PSR, HRP, ' +
-    'CVaR, WST cascade — all derived from first principles.',
+    'Full derivations for the 15-layer Drift pipeline. ' +
+    'Rank transform, IC/ICIR, regime co-movement graph, self-calibrating Black-Litterman (endogenous Ω), ' +
+    'wavelet scattering stability, HRP, CVaR, PSR/DSR — all derived from first principles.',
 }
 
 function Eq({ children }: { children: React.ReactNode }) {
@@ -51,18 +51,19 @@ export default function MathPage() {
         <main style={{ paddingTop: 48, paddingBottom: 120 }}>
           <div style={{ fontFamily: 'var(--mono)', fontSize: 10, color: 'var(--teal)', letterSpacing: 3, textTransform: 'uppercase' as const, marginBottom: 12 }}>mathematical foundations</div>
           <h1 style={{ fontFamily: 'var(--mono)', fontSize: 34, fontWeight: 700, color: 'var(--text)', marginBottom: 16, letterSpacing: -1 }}>The mathematics of Drift</h1>
-          <p style={{ fontSize: 15, color: 'var(--muted)', lineHeight: 1.8, maxWidth: 560, marginBottom: 48 }}>Full derivations for every formula. Each section explains the problem, derives the solution from first principles, and notes how it maps to source code.</p>
+          <p style={{ fontSize: 15, color: 'var(--muted)', lineHeight: 1.8, maxWidth: 560, marginBottom: 48 }}>Full derivations for every formula in the 15-layer pipeline. Each section explains the problem, derives the solution from first principles, and notes how it maps to source code. Includes the Drift 2.0 upgrades: endogenous Ω, co-movement graph regimes, vectorized WST, and the corrected BL view construction.</p>
 
-          <Ls id="l1" n="Layer 1" col="#00C896" title="Data — caching and provider abstraction">
-            <H3 c="Why Parquet?" />
-            <P c="Parquet is a columnar format. For time-series data where you frequently slice by date range or select specific columns, columnar storage means only the requested columns are read off disk. A row-based format reads every column even when you want one. For a 500-ticker, 5-year OHLCV dataset this difference is 10–50×." />
-            <P c="Snappy compression decompresses at ~500 MB/s — 3× faster than gzip at only ~10% size penalty. On repeated pipeline runs this matters more than cold storage size." />
-            <H3 c="Cache key scheme" />
-            <P c="Each file is addressed by a content hash of (dataset, ticker, start, end, interval). This prevents stale reads across date ranges. The deliberate choice NOT to support partial-range reuse avoids a class of subtle bugs where a cached wide range silently returns stale data for a sub-range request." />
-            <Insight>Key invariant: the DataLoader is the only file in the codebase that knows OpenBB exists. All layers above get DataFrames. Swapping the data vendor is a one-file change.</Insight>
+          <Ls id="l1" n="Layer 1" col="#00C896" title="Returns — data ingestion and contracts">
+            <H3 c="Simple and log returns" />
+            <P c="For price P_{i,t}: simple return r_{i,t} = P_{i,t}/P_{i,t-1} − 1; log return ℓ_{i,t} = log(1 + r_{i,t}). Log returns are used wherever stationarity and additivity are required (regime features, wavelets). Simple returns measure outcomes." />
+            <H3 c="The forward-return contract (Axiom 2)" />
+            <P c="The forward return R_{i,t,h} = P_{i,t+h}/P_{i,t} − 1 peeks into the future. By Axiom 2 it may only appear in evaluation code (IC analysis, backtests, matured view errors) — never in signal generation. The default horizon h = 21 trading days (≈ one month). A CI property test enforces this boundary." />
+            <H3 c="The precomputed FeatureStore" />
+            <P c="Data is fetched via a fully asynchronous engine from Zerodha Kite, paced exactly at the broker rate limit. All screener math is precomputed at dawn and serialized into memory-mapped Arrow tables. A user request does zero network calls and zero pandas math — the OS maps the file into RAM directly. Fallback: if a snapshot is stale or the universe is custom, the live async pipeline runs without blocking other requests." />
+            <Insight>Key invariant: the DataLoader is the only file in the codebase that knows the broker exists. All layers above receive a clean (date, ticker) MultiIndex DataFrame. The async engine and FeatureStore are the only layer that knows about Zerodha Kite.</Insight>
           </Ls>
 
-          <Ls id="l2a" n="Layer 2a" col="#818CF8" title="Factor engine — cross-sectional signal construction">
+          <Ls id="l2a" n="Layer 2" col="#818CF8" title="Factor Direction & Rank Transform — cross-sectional signal construction">
             <H3 c="The rank transform — derivation from first principles" />
             <P c="We want a function mapping ranks r ∈ {1..N} linearly to scores s ∈ {−1,+1}. Write the linear form s = a·r + b. Two boundary conditions pin the two unknowns:" />
             <Eq>
@@ -81,10 +82,10 @@ export default function MathPage() {
             <P c="Fama-French 5 factors: Market beta (systematic risk), Size (−log mktcap), Value (B/M ratio), Profitability (ROE), Investment (−asset_growth). Plus Momentum (12-1 month return, skip most recent month per Jegadeesh & Titman 1993) and Quality (composite z-score of ROE, low leverage, low earnings volatility per Asness et al. 2019)." />
           </Ls>
 
-          <Ls id="l2b" n="Layer 2b" col="#818CF8" title="HMM regime detection — the forward algorithm">
+          <Ls id="l2b" n="Layer 4" col="#818CF8" title="Regime-Aware Factor Weighting — HMM + co-movement graph">
             <H3 c="The computational problem" />
             <P c="For K=3 states and T=252 trading days, brute-force enumeration of all state sequences requires K^T = 3^252 ≈ 10^120 operations. The forward algorithm reduces this to O(K²T) via dynamic programming." />
-            <H3 c="The forward variable" />
+            <H3 c="The forward variable (forward-filtered, not smoothed)" />
             <P c="Define α_t(k) = P(o₁,...,o_t, s_t = k | λ) — the probability of seeing observations up to t AND being in state k at t." />
             <Eq>
               <div><Sym c="Initialisation: " /><Val c="α₁(k) = π_k · B_k(o₁)" /></div>
@@ -92,12 +93,19 @@ export default function MathPage() {
               <div><Sym c="Termination: " /><Val c="P(O|λ) = Σ_k α_T(k)" /></div>
               <Cm c="B_j is outside the sum — emission depends only on the destination state, not the path. This is the Markov property." />
             </Eq>
-            <Note>Complexity: O(K²T) vs O(K^T). For K=3, T=252: 2,268 ops vs 10^120. Dynamic programming makes the intractable trivial.</Note>
+            <Note>Drift 2.0 uses forward-filtered (not smoothed) probabilities. The legacy model used smoothed probabilities where every historical date knew the future. A CI property test enforces point-in-time integrity: appending future data must not change any earlier filtered probability.</Note>
+            <H3 c="The co-movement graph upgrade (6-dim embedding)" />
+            <P c="The most reliable crisis precursor is not the index falling — it is correlations tightening before it falls. Drift 2.0 builds a daily co-movement map of ~11 sectors and injects a 6-dimensional embedding g_t into the HMM emission space: (1) mean pairwise correlation ρ̄_t; (2) Absorption Ratio AR_t = Σ_{k=1}^m θ_k / Σ θ_k (Kritzman et al. 2011); (3) Fiedler value λ₂ of the normalized graph Laplacian — how hard the market network is to cut in two; (4) normalized MST length L̄_t (Mantegna 1999); (5) participation ratio PR_t = (Σ v_{1,i}⁴)⁻¹; (6) lead-lag asymmetry ‖Λ−Λᵀ‖_F / ‖Λ+Λᵀ‖_F." />
+            <H3 c="Regime-blended factor weights" />
+            <Eq>
+              <div><Val c="w_{f,t} = 0.60 · w_f^{ICIR} + 0.40 · w_{f,t}^{regime}" /></div>
+              <Cm c="Leg 1 (long-run reliability): ICIR-proportional weights. Leg 2 (current-regime preference): state-conditional mean IC, shrunk with James–Stein pseudo-count." />
+            </Eq>
             <H3 c="Why StandardScaler is mandatory" />
-            <P c="log_return, realised_vol, vol_of_vol differ in scale by ~10×. Without scaling, Baum-Welch EM collapses all observations into one state. That state's covariance is well-estimated; the minority states have near-zero observations, their covariance matrices become rank-deficient, and the Cholesky decomposition inside the Gaussian emission fails." />
+            <P c="log_return, realised_vol, vol_of_vol, and the 6 co-movement features differ in scale by orders of magnitude. Without scaling, Baum-Welch EM collapses all observations into one state. That state's covariance is well-estimated; the minority states have near-zero observations, their covariance matrices become rank-deficient, and the Cholesky decomposition inside the Gaussian emission fails." />
           </Ls>
 
-          <Ls id="l2c" n="Layer 2c" col="#818CF8" title="WST features — Cauchy wavelet scattering">
+          <Ls id="l2c" n="Layer 6" col="#818CF8" title="Wavelet Scattering Stability — path-stability score">
             <H3 c="Why the modulus is essential" />
             <P c="A complex wavelet ψ_j is a bandpass filter. The raw convolution x★ψ_j oscillates at the centre frequency with zero mean — averaging gives nothing. The modulus |x★ψ_j| strips the oscillation and gives the instantaneous amplitude envelope — slowly varying, non-negative, convolvable at the next scale." />
             <P c="Without modulus: S₂ = x★ψ_j₁★ψ_j₂ is just another bandpass filter (composition of linear operators = linear operator). With modulus: S₂ captures how energy at scale j₁ modulates energy at scale j₂ — a genuinely non-linear feature." />
@@ -108,16 +116,19 @@ export default function MathPage() {
               <Cm c="α=4 in Drift · higher α → closer to Morlet · lower α → heavier tails, more sensitive to large events" />
             </Eq>
             <P c="Financial returns are fat-tailed. A Morlet wavelet damps a 10σ return the same as a 3σ return at the same frequency. A Cauchy wavelet retains sensitivity to the 10σ event — exactly the information that matters for systematic risk." />
-            <H3 c="The 37-dimensional coefficient vector" />
+            <H3 c="The scattering cascade" />
             <Eq>
               <div><Val c="S₀ = ⟨|x|⟩" /><Sym c="  →  1 coefficient" /></div>
               <div><Val c="S₁(j) = ⟨|x★ψ_j|⟩" /><Sym c="  →  J=8 coefficients" /></div>
               <div><Val c="S₂(j₁,j₂) = ⟨||x★ψ_j₁|★ψ_j₂|⟩" /><Sym c="  →  C(8,2)=28 coefficients  (j₁ &lt; j₂)" /></div>
               <Cm c="Total: 1 + 8 + 28 = 37  ·  Each coefficient is translation-invariant: same volatility pattern at any point in time → same feature" />
             </Eq>
+            <H3 c="Path-stability score (production output)" />
+            <P c="In the production pipeline, the scattering coefficients are distilled into a single path-stability score in [−1,+1]: +1 = smooth, trending path; −1 = erratic, jumpy behavior. The computation now runs as a single 3D tensor batch operation with a cached filter bank and reflection padding — correcting two bugs present in the legacy per-ticker loop implementation." />
+            <Insight>The vectorized WST batch eliminates thousands of interpreter round-trips. The two fixed bugs: incorrect boundary conditions (now reflection padding) and an odd-length filter crash — both had silently corrupted historical stability scores.</Insight>
           </Ls>
 
-          <Ls id="l3" n="Layer 3" col="#F59E0B" title="Alpha engine — IC, ICIR, and signal combination">
+          <Ls id="l3" n="Layer 3" col="#F59E0B" title="Factor Reliability — IC, ICIR, and signal combination">
             <H3 c="Why Spearman, not Pearson" />
             <P c="A single earnings shock (+30% on one stock, ±2% everywhere else) produces a near-zero Pearson IC even if the factor correctly ranked all other stocks. Spearman rank correlation is Pearson correlation of the rank vectors — a single outlier gets rank N, not a 15σ influence on the correlation." />
             <Eq>
@@ -138,25 +149,32 @@ export default function MathPage() {
             <Insight>Regime conditioning: momentum weight → 0 in bear regimes (Barroso & Santa-Clara 2015: momentum crashes occur specifically during market reversals following bear regimes).</Insight>
           </Ls>
 
-          <Ls id="l4a" n="Layer 4a" col="#3B82F6" title="Black-Litterman — Bayesian posterior portfolios">
+          <Ls id="l4a" n="Layer 8" col="#3B82F6" title="Black-Litterman — self-calibrating Bayesian posterior">
             <H3 c="Step 1 — Reverse optimisation" />
             <P c="CAPM says market-cap weights w_mkt are mean-variance optimal. Running the formula backwards gives the implied equilibrium expected returns:" />
             <Eq><div><Val c="μ_eq = λ · Σ · w_mkt" /></div><Cm c="λ = market risk aversion ≈ 2.5" /></Eq>
-            <H3 c="Step 2 — Views from IC-weighted signals" />
+            <H3 c="Step 2 — Views as active tilts above equilibrium (corrected)" />
+            <P c="The legacy implementation set q = Z · scale(μ_eq), which dragged expected-return levels toward zero. The corrected formula treats the composite alpha Z as an active tilt above the equilibrium prior:" />
             <Eq>
               <div><Sym c="P = I_N" /><Sym c="  (absolute views on each stock)" /></div>
-              <div><Sym c="q = Z · scale(μ_eq)" /><Sym c="  (views in return units)" /></div>
-              <div><Sym c="Ω = τ · diag(PΣPᵀ)" /><Sym c="  (He-Litterman uncertainty)" /></div>
+              <div><Val c="q = π + Z · scale(μ_eq)" /><Sym c="  (equilibrium prior + active tilt)" /></div>
+              <Cm c="π = μ_eq is the CAPM prior. The tilt Z·scale anchors expected-return levels correctly." />
             </Eq>
-            <H3 c="Step 3 — Posterior (conjugate Gaussian update)" />
+            <H3 c="Step 3 — Endogenous view uncertainty Ω (the key upgrade)" />
+            <P c="In the legacy model, Ω = τ · diag(PΣPᵀ) was a single hand-set constant (He-Litterman uncertainty). Drift 2.0 makes Ω endogenous — computed from the model's own measured IC accuracy and realized view errors:" />
+            <Eq>
+              <div><Val c="Ω = f(IC_history, realized_errors)" /><Sym c="  (endogenous, per-asset)" /></div>
+              <Cm c="Poor recent accuracy → Ω inflates → portfolio drifts toward market baseline. Self-deflating risk gate." />
+            </Eq>
+            <H3 c="Step 4 — Posterior (conjugate Gaussian update)" />
             <Eq>
               <div><Val c="M = [(τΣ)⁻¹ + PᵀΩ⁻¹P]⁻¹" /><Sym c="  (posterior covariance)" /></div>
               <div><Val c="μ_BL = M · [(τΣ)⁻¹μ_eq + PᵀΩ⁻¹q]" /><Sym c="  (posterior mean)" /></div>
-              <Cm c="Precision-weighted average: high-confidence views pull μ_BL toward q; low-confidence leaves it near μ_eq" />
+              <Cm c="Precision-weighted average: high-confidence views pull μ_BL toward q; when Ω is large (low confidence), μ_BL stays near μ_eq" />
             </Eq>
           </Ls>
 
-          <Ls id="l4b" n="Layer 4b" col="#3B82F6" title="Hierarchical Risk Parity — clustering-based allocation">
+          <Ls id="l4b" n="Layer 10" col="#3B82F6" title="Hierarchical Risk Parity — clustering-based base allocation">
             <H3 c="Step 1 — Distance matrix" />
             <Eq>
               <div><Val c="d_{ij} = √((1 − ρ_{ij}) / 2)" /></div>
@@ -173,7 +191,7 @@ export default function MathPage() {
             <Note>HRP is the default optimiser — it never fails numerically. BL requires a well-conditioned covariance; HRP works even when T &lt; N.</Note>
           </Ls>
 
-          <Ls id="l4c" n="Layer 4c" col="#3B82F6" title="CVaR — the Rockafellar-Uryasev linear programme">
+          <Ls id="l4c" n="Layer 14" col="#3B82F6" title="CVaR — the Rockafellar-Uryasev linear programme">
             <H3 c="The non-smooth problem" />
             <Eq><div><Val c="CVaR_α(w) = min_z [ z + 1/((1−α)T) · Σ_t max(−w^T r_t − z, 0) ]" /></div></Eq>
             <P c="The max() makes this non-smooth. Standard gradient methods fail. Rockafellar-Uryasev (2000) showed it reformulates as a linear programme:" />
@@ -185,7 +203,7 @@ export default function MathPage() {
             </Eq>
           </Ls>
 
-          <Ls id="l5" n="Layer 5" col="#F59E0B" title="Risk model — Ledoit-Wolf shrinkage and BARRA decomposition">
+          <Ls id="l5" n="Layer 9" col="#F59E0B" title="Covariance & Risk Model — Ledoit-Wolf shrinkage and BARRA decomposition">
             <H3 c="Why sample covariance fails" />
             <P c="An N×N covariance matrix has N(N+1)/2 unique parameters. When T approaches N, the condition number (max/min eigenvalue) explodes. Inverting such a matrix amplifies noise by the condition number — 10³ or more for a 100-asset portfolio with 2 years of daily data." />
             <H3 c="Ledoit-Wolf shrinkage" />
@@ -202,7 +220,7 @@ export default function MathPage() {
             </Eq>
           </Ls>
 
-          <Ls id="l6" n="Layer 6" col="#00C896" title="Backtest — PSR, DSR, and walk-forward">
+          <Ls id="l6" n="Layer 15" col="#00C896" title="Backtest Validation — walk-forward, PSR, and DSR">
             <H3 c="Sharpe ratio variance under non-normality" />
             <Eq>
               <div><Val c="Var(SR̂) ≈ (1/T) · [1 − γ₃ · SR̂ + (γ₄−1)/4 · SR̂²]" /></div>

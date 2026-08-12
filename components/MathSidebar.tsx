@@ -3,16 +3,16 @@
 import { useEffect, useState } from 'react'
 
 const LAYERS = [
-  { id: 'l1',  label: 'L1 — Data',              col: '#00C896' },
-  { id: 'l2a', label: 'L2a — Factor engine',     col: '#818CF8' },
-  { id: 'l2b', label: 'L2b — HMM regimes',       col: '#818CF8' },
-  { id: 'l2c', label: 'L2c — WST features',      col: '#818CF8' },
-  { id: 'l3',  label: 'L3 — Alpha engine',       col: '#F59E0B' },
-  { id: 'l4a', label: 'L4a — Black-Litterman',   col: '#3B82F6' },
-  { id: 'l4b', label: 'L4b — HRP',               col: '#3B82F6' },
-  { id: 'l4c', label: 'L4c — CVaR',              col: '#3B82F6' },
-  { id: 'l5',  label: 'L5 — Risk model',         col: '#F59E0B' },
-  { id: 'l6',  label: 'L6 — Backtest / PSR',     col: '#00C896' },
+  { id: 'l1',  label: 'L1 — Returns',                    col: '#00C896' },
+  { id: 'l2a', label: 'L2 — Rank Transform',             col: '#818CF8' },
+  { id: 'l2b', label: 'L4 — Regime Engine',              col: '#818CF8' },
+  { id: 'l2c', label: 'L6 — WST Stability',              col: '#818CF8' },
+  { id: 'l3',  label: 'L3 — IC & ICIR',                  col: '#F59E0B' },
+  { id: 'l4a', label: 'L8 — Black-Litterman (endo. Ω)',  col: '#3B82F6' },
+  { id: 'l4b', label: 'L10 — HRP Allocation',            col: '#3B82F6' },
+  { id: 'l4c', label: 'L14 — CVaR',                      col: '#3B82F6' },
+  { id: 'l5',  label: 'L9 — Covariance & Risk',          col: '#F59E0B' },
+  { id: 'l6',  label: 'L15 — Backtest / PSR / DSR',      col: '#00C896' },
 ]
 
 export function MathSidebar() {

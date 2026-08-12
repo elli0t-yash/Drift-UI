@@ -9,8 +9,8 @@ import { Spinner } from "@/components/Spinner"
 import { api } from "@/lib/api"
 import { useApiKey } from "@/lib/useApiKey"
 
-const FREE = ["50 requests/day", "Up to 5 tickers per request", "Factor signals (size, momentum, beta)", "Portfolio optimisation (HRP)", "No backtest access", "No risk decomposition"]
-const PRO = ["2,000 requests/day", "Up to 50 tickers per request", "All factor signals", "All optimisers (HRP, Black-Litterman, CVaR)", "Backtest access (PSR, DSR, drawdown)", "Risk decomposition (BARRA model)", "Priority support"]
+const FREE = ["50 requests/day", "Up to 5 tickers per request", "Screener top-10 (precomputed, <150 ms)", "All 7 factor signals (momentum, beta, size, value, profitability, investment, quality)", "Portfolio optimisation (HRP)", "No backtest access", "No risk decomposition"]
+const PRO = ["2,000 requests/day", "Up to 50 tickers per request", "Full screener (all ranked stocks)", "All 7 factor signals + regime context", "All optimisers (HRP, Black-Litterman, CVaR)", "Risk decomposition (BARRA model) + stress tests", "Backtest access (walk-forward, PSR, DSR)", "PDF research reports", "Priority support"]
 
 export default function PricingPage() {
   const { apiKey, hasKey, isLoaded } = useApiKey()

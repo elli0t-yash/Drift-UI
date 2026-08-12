@@ -20,13 +20,14 @@ export function Hero() {
 
       <h1 className="hero-h1">
         From log-returns to alpha.<br />
-        <em>Seven layers. </em>
+        <em>Fifteen layers. </em>
         <b>Zero black boxes.</b>
       </h1>
 
       <p className="hero-sub">
-        Wavelet scattering features, IC-weighted signal composition, and Bayesian
-        portfolio construction — derived from first principles, covered by 182 tests.
+        Regime-aware factor weights, self-calibrating Black-Litterman confidence, and
+        co-movement graph crisis detection — institutional quant research for Indian
+        equities, derived from first principles.
       </p>
 
       <div className="hero-actions">
@@ -74,7 +75,7 @@ export function Hero() {
 
       <div className="badges">
         <span className="badge badge-t">drift 0.1.0</span>
-        <span className="badge badge-t">7 layers</span>
+        <span className="badge badge-t">15 layers</span>
         <span className="badge badge-t">182 tests</span>
         <span className="badge">PyPI</span>
         <span className="badge">FastAPI</span>

@@ -5,7 +5,7 @@ const FOUNDERS = [
     name:   'Yash Mishra',
     role:   'SYSTEMS · OPTIMAL TRANSPORT',
     org:    'Senior Software Engineer, Bajaj Finance Ltd',
-    bio:    'Concurrent systems, optimal transport, and real-time indexing. Built the Rust orchestration layer for OmniPulse (HNSW + Sliced Wasserstein) and the full seven-layer Drift platform — from data ingestion through the Streamlit dashboard.',
+    bio:    'Concurrent systems, optimal transport, and real-time indexing. Built the Rust orchestration layer for OmniPulse (HNSW + Sliced Wasserstein) and the full fifteen-layer Drift platform — from data ingestion through the Streamlit dashboard.',
     links:  [
       { label: 'LinkedIn ↗', href: 'https://www.linkedin.com/in/mishra-yash2002/' },
       { label: 'GitHub ↗',   href: 'https://github.com/elli0t-yash' },
