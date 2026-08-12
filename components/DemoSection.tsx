@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import {
   LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer,
   AreaChart, Area, CartesianGrid
@@ -341,8 +341,10 @@ type Tab = typeof TABS[number]
 
 export function DemoSection() {
   const { theme } = useTheme()
-  const isDark = theme !== 'light'
+  const [mounted, setMounted] = useState(false)
   const [tab, setTab] = useState<Tab>('Equity curve')
+  useEffect(() => setMounted(true), [])
+  const isDark = mounted ? theme !== 'light' : true
 
   const tabStyle = (t: Tab) => ({
     fontFamily: 'var(--mono)',
